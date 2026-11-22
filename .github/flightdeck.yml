@@ -1,0 +1,11 @@
+dispatch:
+  targets:
+    - repository: densanken/blog
+      path: authors
+preflight:
+  title-types:
+    - types:
+        - docs
+      paths:
+        - "authors/**"
+        - "*.md"

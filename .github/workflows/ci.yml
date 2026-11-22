@@ -1,0 +1,229 @@
+name: ci
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+# PR に push し直したら、古い実行を取り消す
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  check:
+    name: ${{ matrix.check.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        check:
+          - name: lint
+            script: lint:check
+          - name: fmt
+            script: fmt:check
+          - name: content
+            script: check:content
+          - name: test
+            script: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up sfw
+        uses: socketdev/action@ba6de6cc0565af1f42295590380973573297e31f # v1.3.2
+        with:
+          mode: firewall-free
+
+      - name: Set up pnpm and Node.js
+        uses: pnpm/setup@731dfb6463bbd11c11fd0ee11fe00ed0e36d48a1 # v3.2.0
+        with:
+          node-version-file: .nvmrc
+          install: false
+
+      - name: Install dependencies
+        run: sfw pnpm install --frozen-lockfile
+
+      - name: Run ${{ matrix.check.name }} check
+        env:
+          CHECK_SCRIPT: ${{ matrix.check.script }}
+        run: >-
+          bash scripts/stop-commands.sh bash -c
+          'set -o pipefail; pnpm run "$CHECK_SCRIPT" 2>&1 | tee result.txt'
+
+      - name: Upload diagnostics
+        if: failure() && (matrix.check.name == 'fmt' || matrix.check.name == 'content')
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: diagnostics-${{ matrix.check.name }}
+          path: result.txt
+          retention-days: 1
+          overwrite: true
+
+  scan:
+    name: ClamAV
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Get date for signature cache
+        id: date
+        run: echo "value=$(date -u +%F)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache ClamAV signatures
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/clamav-db
+          key: clamav-${{ steps.date.outputs.value }}
+          restore-keys: clamav-
+
+      - name: Install ClamAV and update signatures
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends clamav
+          # 自動更新のサービスが、次の freshclam と競合しないようにする
+          sudo systemctl stop clamav-freshclam.service || true
+          # freshclam は AppArmor で、/etc/clamav/freshclam.conf と /var/lib/clamav 以外を読み書きできない
+          # 設定ファイルを RUNNER_TEMP に置くと開けないため、標準の設定と /var/lib/clamav で更新し、キャッシュのディレクトリと入れ替える
+          mkdir -p "$RUNNER_TEMP/clamav-db"
+          sudo cp -a "$RUNNER_TEMP/clamav-db/." /var/lib/clamav/
+          sudo chown -R clamav:clamav /var/lib/clamav
+          sudo freshclam
+          sudo cp -a /var/lib/clamav/. "$RUNNER_TEMP/clamav-db/"
+          sudo chown -R "$(id -u):$(id -g)" "$RUNNER_TEMP/clamav-db"
+
+      # clamscan は、--max-dir-recursion（既定は 15）以上の深さのディレクトリを、エラーにならず未検査にする
+      # そのため、先に深さを調べ、上限以上のディレクトリがあれば失敗にする（未検査のファイルを通さない）
+      - name: Check directory depth
+        run: |
+          too_deep=$(find . -mindepth 15 -type d -not -path './.git/*' -print | sed -n 1p)
+          if [ -n "$too_deep" ]; then
+            echo "::error::ディレクトリの深さが上限（15）に達しています: ${too_deep//[$'\r\n']/ }"
+            exit 1
+          fi
+
+      - name: Scan repository
+        run: >-
+          bash scripts/stop-commands.sh clamscan
+          --database "$RUNNER_TEMP/clamav-db" --recursive --max-dir-recursion=15 --infected
+          --follow-dir-symlinks=0 --follow-file-symlinks=0 --alert-exceeds-max=yes
+          --exclude-dir='(^|/)\.git$' .
+
+  # 2 段目の検証：ブログの main を、PR のマージツリー全体で厳格モードでビルドする
+  # マージ後の公開をブログ側で止めないため、コンテンツが原因の失敗はすべてここで検出する
+  blog:
+    if: github.event_name == 'pull_request'
+    needs:
+      - check
+      - scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      # ビルドの手順（densanken/blog の .github/actions/build）は、ブログを作業ディレクトリのルートに置く前提
+      - name: Checkout blog
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: densanken/blog
+          ref: main
+          persist-credentials: false
+
+      # 記事の更新日を Git の履歴から求めるため、全履歴が必要
+      - name: Checkout contents
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: contents
+          fetch-depth: 0
+          persist-credentials: false
+
+      # チェックアウトしたブログの action を使い、ブログの main に追従する（Org の設定で、リポジトリ外の action は SHA の固定が必須のため）
+      # 予約投稿も検査するため、予約投稿を含めるプレビュー用の設定でビルドする（URL は本番のもの）
+      - name: Build
+        uses: ./.github/actions/build
+        with:
+          strict: "true"
+          preview: "true"
+          site-url: https://blog.densanken.com
+
+      # 本番の配信先の容量の上限を確かめる
+      # 複数の PR のマージで超えないよう、上限より低い値で失敗にする
+      # 不備でビルドが失敗しても、容量も 1 回で分かるように確かめる
+      - name: Check the size of the output
+        if: ${{ !cancelled() }}
+        env:
+          WARN_BYTES: "750000000"
+          FAIL_BYTES: "950000000"
+        run: |
+          if [ ! -d .output/public ]; then exit 0; fi
+          size=$(find .output/public -type f -printf '%s\n' | awk '{ s += $1 } END { print s + 0 }')
+          echo "output: $size bytes"
+          if [ "$size" -gt "$FAIL_BYTES" ]; then
+            echo "::error::出力の合計が $size バイトで、上限（$FAIL_BYTES バイト）を超えています。画像を減らすなどして小さくしてください。"
+            exit 1
+          elif [ "$size" -gt "$WARN_BYTES" ]; then
+            echo "::warning::出力の合計が $size バイトで、警告の閾値（$WARN_BYTES バイト）を超えています。"
+          fi
+
+  # PR のプレビュー：変更した著者だけで、厳格モードでなくビルドする
+  # 判定は blog が行う
+  preview-build:
+    if: github.event_name == 'pull_request'
+    needs:
+      - check
+      - scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout blog
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: densanken/blog
+          ref: main
+          persist-credentials: false
+
+      - name: Checkout contents
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: contents
+          fetch-depth: 0
+          persist-credentials: false
+
+      # ビルドを短くし、Workers のファイル数の上限に収めるため、PR が変更していない著者の記事を削除する
+      # プロフィール、meta とアセットは残す（ブログがプロフィールのアイコンを検査するため）
+      - name: Remove posts of unchanged authors
+        working-directory: contents
+        run: |
+          # 著者 ID は 1 段目の content で検証済み（半角英数字とハイフン）
+          # 先頭がハイフンでもよいので -e で渡す
+          changed=$(git diff --no-renames --name-only HEAD^1 HEAD -- authors | cut -d/ -f2 | sort -u)
+          # authors がまだないとき、glob が展開されずにそのまま残るので飛ばす
+          for dir in authors/*/; do
+            [ -d "$dir" ] || continue
+            author=$(basename "$dir")
+            if ! grep -qxF -e "$author" <<< "$changed"; then find "$dir" -type f -name '*.md' -delete; fi
+          done
+
+      - name: Build
+        uses: ./.github/actions/build
+        with:
+          preview: "true"
+          site-url: ${{ format('https://pr-{0}-{1}.{2}.workers.dev', github.event.pull_request.number, vars.PREVIEW_WORKER, vars.PREVIEW_WORKERS_SUBDOMAIN) }}
+          preview-pr: ${{ github.event.pull_request.number }}
+
+      - name: Upload site
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: site
+          path: .output/public
+          retention-days: 1
+          # ジョブを再実行したとき、同じ実行の前の試行の成果物を置き換える
+          overwrite: true

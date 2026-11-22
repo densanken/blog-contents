@@ -1,0 +1,32 @@
+name: Check comment
+on:
+  workflow_run:
+    workflows:
+      - CI
+    types:
+      - completed
+
+concurrency:
+  group: check-comment-${{ github.event.workflow_run.head_repository.id }}-${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  actions: read
+  pull-requests: write
+
+jobs:
+  comment:
+    if: github.event.workflow_run.event == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+
+      - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const { default: comment } = await import(`${process.env.GITHUB_WORKSPACE}/scripts/comment.ts`);
+            await comment({ github, context, core });

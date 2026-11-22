@@ -1,0 +1,22 @@
+{
+  "[markdown]": {
+    "editor.defaultFormatter": "oxc.oxc-vscode",
+    "editor.renderWhitespace": "trailing",
+    "files.trimTrailingWhitespace": false
+  },
+  "[mdx]": {
+    "editor.defaultFormatter": "oxc.oxc-vscode",
+    "editor.renderWhitespace": "trailing",
+    "files.trimTrailingWhitespace": false
+  },
+  "editor.defaultFormatter": "oxc.oxc-vscode",
+  "editor.formatOnSave": true,
+  "editor.formatOnSaveMode": "file",
+  "editor.insertSpaces": true,
+  "editor.tabSize": 2,
+  "extensions.ignoreRecommendations": true,
+  "files.eol": "\n",
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true,
+  "oxc.fmt.configPath": "oxfmt.config.ts"
+}
