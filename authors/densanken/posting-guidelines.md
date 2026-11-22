@@ -120,8 +120,8 @@ description: 記事の概要
 - 拡張子は実際の画像形式と一致させてください（例：PNG 画像に `.jpg` を付けない）。
 - ファイル名に空白やアンダースコア（`_`）を含めないでください。スクリーンショットなどは名前を変更してから配置してください。
 
-<!-- ## Markdown について
+## Markdown について
 
-使える Markdown の記法については、[Markdown 構文サンプル](/@densanken/markdown-syntax-sample) を参考にしてみてください。 -->
+使える Markdown の記法については、[Markdown 構文サンプル](/@densanken/markdown-syntax-sample) を参考にしてみてください。
 
 [記事一覧へ戻る](/)
