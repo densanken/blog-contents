@@ -1,0 +1,9 @@
+pre-commit:
+  jobs:
+    - name: lint
+      glob: "*.ts"
+      run: pnpm oxlint --fix --no-error-on-unmatched-pattern {staged_files}
+      stage_fixed: true
+    - name: format
+      run: pnpm oxfmt --disable-nested-config --no-error-on-unmatched-pattern {staged_files}
+      stage_fixed: true

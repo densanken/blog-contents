@@ -1,0 +1,15 @@
+{
+  // PR のプレビュー（.github/workflows/preview.yml）
+  // Worker の名前は、リポジトリの変数 PREVIEW_WORKER で指定する
+  "compatibility_date": "2026-11-01",
+  // 本番の workers.dev を無効に
+  "workers_dev": false,
+  "preview_urls": true,
+  "previews": {},
+  "assets": {
+    // CI の preview-build ジョブがビルドした成果物
+    "directory": "site",
+    "not_found_handling": "404-page",
+    "html_handling": "force-trailing-slash",
+  },
+}

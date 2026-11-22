@@ -1,0 +1,28 @@
+{
+  "name": "blog-contents",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lint": "tsc --noEmit && oxlint --fix . && oxfmt --disable-nested-config",
+    "lint:check": "tsc --noEmit && oxlint .",
+    "fmt": "oxfmt --disable-nested-config",
+    "fmt:check": "oxfmt --check --disable-nested-config",
+    "check": "tsc --noEmit && oxlint . && oxfmt --check --disable-nested-config",
+    "check:content": "node scripts/check-content.ts",
+    "test": "node --test scripts/*.test.ts"
+  },
+  "packageManager": "pnpm@12.21.0+sha512.66fd8278ee28935ce951792d34367ff3af5c432a2756445823029533835b8da529bbe0be5130afd56ed0713fb8789e47bad82d93bd5ae2fe54b15562d6276ef0",
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "@types/probe-image-size": "^7.2.5",
+    "lefthook": "^2.2.2",
+    "oxfmt": "^0.79.0",
+    "oxlint": "^1.94.0",
+    "probe-image-size": "^7.5.0",
+    "sharp": "^0.35.5",
+    "tsrs": "7.1.0-beta.tsrs3",
+    "typescript": "^7.0.2",
+    "wrangler": "^4.165.0",
+    "yaml": "^2.9.1"
+  }
+}
