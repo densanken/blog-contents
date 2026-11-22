@@ -35,12 +35,12 @@ CCS（千葉大学電子計算機研究会）のメンバーと OB/OG 向けの�
 
 ```text
 authors/
-  著者ID/
-    profile.yml
-    meta.yml
-    hello.md
-    assets/
-      image.png
+ └ 著者ID/
+   ├ profile.yml
+   ├ meta.yml
+   ├ hello.md
+   └ assets/
+     └ image.png
 ```
 
 > [!IMPORTANT]
