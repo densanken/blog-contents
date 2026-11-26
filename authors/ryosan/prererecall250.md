@@ -55,15 +55,9 @@ https://www.youtube.com/watch?v=Nac1pHh_G5s
 セーブシチュエーションのときは心のどこかで「益田さん来ないかな」とは思いますが、普通に考えて横山です。
 普通そうします。
 
-
-
 この日、9回表を迎えたその時。彼からの「着信」がありました。
 
-
-
 ﾋﾟﾘﾘﾘﾘ……
-
-
 
 https://www.youtube.com/watch?v=5C03bOHAQ7o&t=152s
 
