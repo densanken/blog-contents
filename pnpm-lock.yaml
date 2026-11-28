@@ -187,7 +187,7 @@ importers:
     devDependencies:
       '@types/node':
         specifier: ^26.6.6
-        version: 26.6.6
+        version: 26.6.7
       '@types/probe-image-size':
         specifier: ^7.2.5
         version: 7.2.5
@@ -205,7 +205,7 @@ importers:
         version: 7.5.0(supports-color@10.2.2)
       sharp:
         specifier: ^0.35.5
-        version: 0.35.5(@types/node@26.6.6)
+        version: 0.35.5(@types/node@26.6.7)
       tsrs:
         specifier: 7.1.0-beta.tsrs5
         version: 7.1.0-beta.tsrs5
@@ -214,7 +214,7 @@ importers:
         version: 7.0.2
       wrangler:
         specifier: ^4.165.0
-        version: 4.168.0(@types/node@26.6.6)
+        version: 4.168.0(@types/node@26.6.7)
       yaml:
         specifier: ^2.9.1
         version: 2.9.1
@@ -928,8 +928,8 @@ packages:
   '@types/node@18.19.130':
     resolution: {integrity: sha512-GRaXQx6jGfL8sKfaIDD6OupbIHBr9jv7Jnaml9tB7l4v068PAOXqfcujMMo5PhbIs6ggR1XODELqahT2R8v0fg==}
 
-  '@types/node@26.6.6':
-    resolution: {integrity: sha512-MzQj+8Kx3XI40OmUAE6Qoh58ZMNstNNMwn2nfd3qWsfe7nDNSqJNzes4njhz6AHwrSHOffSLwXU6yb474Q4aog==}
+  '@types/node@26.6.7':
+    resolution: {integrity: sha512-tovuRfrUILu6v46bMG+BgXxMvsqPBx2WO2as8Rpln+JTff1dbexMtAM4KFTejmL0axsnSWViCW7MecUQpLuBRA==}
 
   '@types/probe-image-size@7.2.5':
     resolution: {integrity: sha512-9Bg6d/GNnjmhMMxadDstwrSlquuuLf0jQuPszbU6n3QUfybif3V/ryD3J2i9iaiC5JB/FU/8E41n88SM/UB+Tg==}
@@ -1838,25 +1838,25 @@ snapshots:
 
   '@types/needle@3.3.0':
     dependencies:
-      '@types/node': 26.6.6
+      '@types/node': 26.6.7
 
   '@types/node-fetch@2.6.13':
     dependencies:
-      '@types/node': 26.6.6
+      '@types/node': 26.6.7
       form-data: 4.0.6
 
   '@types/node@18.19.130':
     dependencies:
       undici-types: 5.26.5
 
-  '@types/node@26.6.6':
+  '@types/node@26.6.7':
     dependencies:
       undici-types: 8.9.0
 
   '@types/probe-image-size@7.2.5':
     dependencies:
       '@types/needle': 3.3.0
-      '@types/node': 26.6.6
+      '@types/node': 26.6.7
 
   '@types/yargs-parser@21.0.3': {}
 
@@ -2144,10 +2144,10 @@ snapshots:
     dependencies:
       mime-db: 1.52.0
 
-  miniflare@5.20261123.1-beta(@types/node@26.6.6):
+  miniflare@5.20261123.1-beta(@types/node@26.6.7):
     dependencies:
       '@cspotcode/source-map-support': 0.8.1
-      sharp: 0.35.5(@types/node@26.6.6)
+      sharp: 0.35.5(@types/node@26.6.7)
       undici: 7.30.2
       workerd: 1.20261123.1
       ws: 8.21.0
@@ -2236,7 +2236,7 @@ snapshots:
 
   semver@7.8.6: {}
 
-  sharp@0.35.5(@types/node@26.6.6):
+  sharp@0.35.5(@types/node@26.6.7):
     dependencies:
       '@img/colour': 1.1.0
       detect-libc: 2.1.2
@@ -2267,7 +2267,7 @@ snapshots:
       '@img/sharp-win32-arm64': 0.35.5
       '@img/sharp-win32-ia32': 0.35.5
       '@img/sharp-win32-x64': 0.35.5
-      '@types/node': 26.6.6
+      '@types/node': 26.6.7
 
   supports-color@10.2.2: {}
 
@@ -2339,7 +2339,7 @@ snapshots:
       '@cloudflare/workerd-linux-arm64': 1.20261123.1
       '@cloudflare/workerd-windows-64': 1.20261123.1
 
-  wrangler@4.168.0(@types/node@26.6.6):
+  wrangler@4.168.0(@types/node@26.6.7):
     dependencies:
       '@cloudflare/kv-asset-handler': 0.5.1
       '@cloudflare/unenv-preset': 2.16.2(unenv@2.0.0-rc.24)(workerd@1.20261123.1)
@@ -2349,7 +2349,7 @@ snapshots:
       cloudflare: 5.2.0
       devtools-protocol: 0.0.1182435
       esbuild: 0.28.2
-      miniflare: 5.20261123.1-beta(@types/node@26.6.6)
+      miniflare: 5.20261123.1-beta(@types/node@26.6.7)
       path-to-regexp: 6.3.0
       undici: 7.30.2
       unenv: 2.0.0-rc.24
